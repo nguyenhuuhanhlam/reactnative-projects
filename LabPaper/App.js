@@ -6,6 +6,7 @@ import { createStackNavigator } from '@react-navigation/stack'
 
 import SplashScreen from './src/screens/SplashScreen'
 import HomeScreen from './src/screens/HomeScreen'
+import ProjectManagementScreen from './src/screens/ProjectManagementScreen'
 
 const Stack = createStackNavigator()
 
@@ -18,6 +19,7 @@ const App = () => {
 			>
 				<Stack.Screen name="splash" component={SplashScreen} />
 				<Stack.Screen name="home" component={HomeScreen} />
+				<Stack.Screen name="project_management" component={ProjectManagementScreen} />
 			</Stack.Navigator>
 		</NavigationContainer>
 	)
