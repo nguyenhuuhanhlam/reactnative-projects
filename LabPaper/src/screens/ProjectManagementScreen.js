@@ -1,21 +1,51 @@
-import React, {useState, useEffect}  from 'react'
+import React, { useState, useEffect }  from 'react'
 import { Image, Platform , StyleSheet, View } from 'react-native'
 import { Appbar, Button, Text } from 'react-native-paper'
 import { DataTable } from 'react-native-paper'
-
 import io from 'socket.io-client'
+// import { Connection } from 'webdav-client'
 
-const MORE_ICON = Platform.OS === 'ios' ? 'dots-horizontal' : 'dots-vertical'
+import { MORE_ICON, WEBDAV_URL } from '../statics'
+
+const socket = io('http://192.168.1.2:3000')
 
 const ProjectManagementScreen = ({ navigation }) => {
 
 	const [projects, setProjects] = useState([])
+	// const [connection, setConnection] = useState(null)
+	// const connection = new Connection(WEBDAV_URL,{username:'nguyenhuuhanhlam',password:'@un1ock@'})
 
-	useEffect(()=>{
-		let socket = io('http://localhost:3000')
+	useEffect(() => {
+		// setConnection(new Connection(WEBDAV_URL))
+		// connection = new Connection(WEBDAV_URL,{username:'nguyenhuuhanhlam',password:'@un1ock@'})
+		
 		socket.emit('/db/projects')
-		socket.on('/db/projects', rows=>setProjects(rows))
+		socket.on('/db/projects', rows => setProjects(rows))
 	}, []) //only re-run the effect if new data comes in
+
+	//
+	const projectStatusColor = val => {
+		switch(val)
+		{
+			case 5:
+				return 'azure'
+			break
+
+			case 3:
+				return 'orange'
+			break 
+
+			default:
+				return 'limegreen'
+		}
+	}
+
+	const rowOnPress = id => {
+		// connection.get('/mientay_public', (err,content) => {
+		// 	console.log(content)
+		// })
+		socket.emit('/dav', {project_id:100})
+	}
 
 	return (
 		<View style={{ flex: 1 }}>
@@ -26,29 +56,33 @@ const ProjectManagementScreen = ({ navigation }) => {
 			<View>
 				<DataTable>
 					<DataTable.Header>
-						<DataTable.Title>Project</DataTable.Title>
-						<DataTable.Title>Status</DataTable.Title>
-						<DataTable.Title>Act</DataTable.Title>
+						<DataTable.Title style={{flex:5}}>Project</DataTable.Title>
+						<DataTable.Title sortDirection='descending'>Status</DataTable.Title>
 					</DataTable.Header>
 					{
-						projects!=null ? projects.map((v,i) => 
-							<DataTable.Row key={i}>
-								<DataTable.Cell>{v.project_name}</DataTable.Cell>
-								<DataTable.Cell>-</DataTable.Cell>
-								<DataTable.Cell>
-									<Button icon="camera"/>
-								</DataTable.Cell>
-							</DataTable.Row>
-						) : null
+						projects!=null
+						?	projects.map((v,i) => 
+								<DataTable.Row key={i} onPress={()=>rowOnPress(v.id)}>
+									<DataTable.Cell style={{flex:5}}>{v.project_name}</DataTable.Cell>
+									<DataTable.Cell>
+										<Button icon="circle" color={ projectStatusColor(v.status) } />
+									</DataTable.Cell>
+								</DataTable.Row>
+							)
+						: <DataTable.Row><DataTable.Cell><Text>Loading...</Text></DataTable.Cell></DataTable.Row>
 					}
-				 	<DataTable.Pagination
-						page={1}
-						numberOfPages={3}
-						onPageChange={page => {
-						console.log(page);
-						}}
-						label="m-n of z"
-					/>
+					{
+						projects!=null
+						? 	<DataTable.Pagination
+								page={1}
+								numberOfPages={3}
+								onPageChange={page => {
+									console.log(page)
+								}}
+								label="m-n of z"
+							/>
+						: null
+					}
 				</DataTable>
 			</View>
 		</View>
@@ -56,9 +90,8 @@ const ProjectManagementScreen = ({ navigation }) => {
 }
 
 // const styles = StyleSheet.create({
-// 	logo: {
-// 		width: 256,
-// 		height: 256,
+// 	project_status: {
+// 		color: 
 // 	}
 // })
 
