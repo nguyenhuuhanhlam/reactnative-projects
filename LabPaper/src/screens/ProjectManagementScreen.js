@@ -1,29 +1,56 @@
 import React, { useState, useEffect }  from 'react'
-import { Image, Platform , StyleSheet, View } from 'react-native'
-import { Appbar, Button, Text } from 'react-native-paper'
-import { DataTable } from 'react-native-paper'
+import {
+	Image,
+	Platform,
+	StyleSheet,
+	TouchableOpacity,
+	View,
+} from 'react-native'
+import {
+	Appbar,
+	Button,
+	DataTable,
+	Dialog,
+	IconButton,
+	Paragraph,
+	Text
+} from 'react-native-paper'
+import { Camera } from 'expo-camera'
+import * as FileSystem from 'expo-file-system'
 import io from 'socket.io-client'
-// import { Connection } from 'webdav-client'
 
-import { MORE_ICON, WEBDAV_URL } from '../statics'
+import { MORE_ICON, WEBDAV_URL, SOCKET_IO_URL } from '../statics'
 
-const socket = io('http://192.168.1.2:3000')
+const socket = io(SOCKET_IO_URL)
 
 const ProjectManagementScreen = ({ navigation }) => {
 
 	const [projects, setProjects] = useState([])
-	// const [connection, setConnection] = useState(null)
-	// const connection = new Connection(WEBDAV_URL,{username:'nguyenhuuhanhlam',password:'@un1ock@'})
+	const [currentRow, setCurrentRow] = useState(null)
+
+	const [hasPermission, setHasPermission] = useState(null)
+	const [type, setType] = useState(Camera.Constants.Type.back)
+	let camera = null
+
+	const [visible, setVisible] = React.useState(false)
+
+
 
 	useEffect(() => {
-		// setConnection(new Connection(WEBDAV_URL))
-		// connection = new Connection(WEBDAV_URL,{username:'nguyenhuuhanhlam',password:'@un1ock@'})
-		
+		(async () => {
+			const { status } = await Camera.requestPermissionsAsync()
+			setHasPermission(status === 'granted')
+		})()
+
 		socket.emit('/db/projects')
 		socket.on('/db/projects', rows => setProjects(rows))
+
 	}, []) //only re-run the effect if new data comes in
 
-	//
+	// * * * * *
+	const showDialog = () => setVisible(true)
+	const hideDialog = () => setVisible(false)
+
 	const projectStatusColor = val => {
 		switch(val)
 		{
@@ -40,11 +67,19 @@ const ProjectManagementScreen = ({ navigation }) => {
 		}
 	}
 
-	const rowOnPress = id => {
-		// connection.get('/mientay_public', (err,content) => {
-		// 	console.log(content)
-		// })
-		socket.emit('/dav', {project_id:100})
+	const rowOnPress = obj => {
+		setCurrentRow(obj)
+		showDialog()
+		//alert(id)
+		// socket.emit('/dav/put/file', {project_id:id})
+	}
+
+	const takePicture = async () => {
+		let photo = null
+		let photo_base64 = null
+		photo = await camera.takePictureAsync()
+		photo_base64 = await FileSystem.readAsStringAsync(photo.uri, { encoding: FileSystem.EncodingType.Base64 })
+		socket.emit('/dav/put/image', photo_base64)
 	}
 
 	return (
@@ -53,6 +88,7 @@ const ProjectManagementScreen = ({ navigation }) => {
 				<Appbar.Content title="Projects Management" subtitle={'MienTay Ecosystem'} />
 				<Appbar.Action icon={MORE_ICON} onPress={() => {}} />
 			</Appbar.Header>
+
 			<View>
 				<DataTable>
 					<DataTable.Header>
@@ -62,8 +98,11 @@ const ProjectManagementScreen = ({ navigation }) => {
 					{
 						projects!=null
 						?	projects.map((v,i) => 
-								<DataTable.Row key={i} onPress={()=>rowOnPress(v.id)}>
-									<DataTable.Cell style={{flex:5}}>{v.project_name}</DataTable.Cell>
+								<DataTable.Row
+									key={i}
+									onPress={ ()=>rowOnPress({id:v.id,project_name:v.project_name}) }
+								>
+									<DataTable.Cell style={{flex:5}}><Text>{v.project_name}</Text></DataTable.Cell>
 									<DataTable.Cell>
 										<Button icon="circle" color={ projectStatusColor(v.status) } />
 									</DataTable.Cell>
@@ -85,6 +124,26 @@ const ProjectManagementScreen = ({ navigation }) => {
 					}
 				</DataTable>
 			</View>
+			
+    		<Dialog visible={visible} onDismiss={hideDialog}>
+				<Dialog.Title>
+					<View>
+						<Text>TAKE PHOTO</Text>
+						<Text style={{ color:'lightgray' }}>{ currentRow?currentRow.project_name:'Untitled' }</Text>
+					</View>
+				</Dialog.Title>
+				<Dialog.Content style={{ width:'100%', height:300, paddingBottom:0, paddingLeft:0, paddingRight:0 }}>
+					<Camera style={{ flex: 1, justifyContent:'flex-end' }} type={type} ref={ref=>{ camera=ref }} >
+						<TouchableOpacity style={{ alignSelf: 'center' }}>
+							<IconButton icon="camera" size={36} color={'whitesmoke'} onPress={ ()=>takePicture() }/>
+						</TouchableOpacity>
+					</Camera>
+				</Dialog.Content>
+				<Dialog.Actions>
+					<Button onPress={hideDialog}>Done</Button>
+				</Dialog.Actions>
+    		</Dialog>
+        	
 		</View>
 	)
 }
