@@ -26,8 +26,20 @@ const HomeScreen = ({ navigation }) => {
 
 			<ScrollView>
 				<Card style={styles.card}>
-					<Card.Cover source={require('../../assets/undraw_Scrum_board_re_wk7v.png')} />
+					<Card.Cover source={require('../../assets/undraw_Scrum_board_re_wk7v.png')} style={{margin:20}} />
 					<Card.Title title="Projects Management" />
+					<Card.Content>
+						<Paragraph>
+							Description here!
+						</Paragraph>
+					</Card.Content>
+					<Card.Actions>
+						<Button onPress={()=>navigation.navigate('project_management')}>GO</Button>
+					</Card.Actions>
+				</Card>
+				<Card style={styles.card}>
+					<Card.Cover source={require('../../assets/undraw_Data_points_re_vkpq.png')} style={{margin:20}} />
+					<Card.Title title="Projects Assets" />
 					<Card.Content>
 						<Paragraph>
 							Description here!
