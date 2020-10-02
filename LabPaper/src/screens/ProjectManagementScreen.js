@@ -15,7 +15,7 @@ import {
 	Paragraph,
 	Text
 } from 'react-native-paper'
-import { Camera } from 'expo-camera'
+// import { Camera } from 'expo-camera'
 import * as FileSystem from 'expo-file-system'
 import io from 'socket.io-client'
 
@@ -29,7 +29,7 @@ const ProjectManagementScreen = ({ navigation }) => {
 	const [currentRow, setCurrentRow] = useState(null)
 
 	const [hasPermission, setHasPermission] = useState(null)
-	const [type, setType] = useState(Camera.Constants.Type.back)
+	// const [type, setType] = useState(Camera.Constants.Type.back)
 	let camera = null
 
 	const [visible, setVisible] = React.useState(false)
@@ -37,10 +37,10 @@ const ProjectManagementScreen = ({ navigation }) => {
 
 
 	useEffect(() => {
-		(async () => {
-			const { status } = await Camera.requestPermissionsAsync()
-			setHasPermission(status === 'granted')
-		})()
+		// (async () => {
+		// 	const { status } = await Camera.requestPermissionsAsync()
+		// 	setHasPermission(status === 'granted')
+		// })()
 
 		socket.emit('/db/projects')
 		socket.on('/db/projects', rows => setProjects(rows))
@@ -129,15 +129,11 @@ const ProjectManagementScreen = ({ navigation }) => {
 				<Dialog.Title>
 					<View>
 						<Text>TAKE PHOTO</Text>
-						<Text style={{ color:'lightgray' }}>{ currentRow?currentRow.project_name:'Untitled' }</Text>
+						<Text style={{ color:'rgb(98, 0, 238)' }}>{ currentRow?currentRow.project_name:'Untitled' }</Text>
 					</View>
 				</Dialog.Title>
 				<Dialog.Content style={{ width:'100%', height:300, paddingBottom:0, paddingLeft:0, paddingRight:0 }}>
-					<Camera style={{ flex: 1, justifyContent:'flex-end' }} type={type} ref={ref=>{ camera=ref }} >
-						<TouchableOpacity style={{ alignSelf: 'center' }}>
-							<IconButton icon="camera" size={36} color={'whitesmoke'} onPress={ ()=>takePicture() }/>
-						</TouchableOpacity>
-					</Camera>
+					<Text>Camera come here!</Text>
 				</Dialog.Content>
 				<Dialog.Actions>
 					<Button onPress={hideDialog}>Done</Button>
@@ -153,5 +149,13 @@ const ProjectManagementScreen = ({ navigation }) => {
 // 		color: 
 // 	}
 // })
+
+/*
+<Camera style={{ flex: 1, justifyContent:'flex-end' }} type={type} ref={ref=>{ camera=ref }} >
+						<TouchableOpacity style={{ alignSelf: 'center' }}>
+							<IconButton icon="camera" size={36} color={'whitesmoke'} onPress={ ()=>takePicture() }/>
+						</TouchableOpacity>
+					</Camera>
+*/
 
 export default ProjectManagementScreen
